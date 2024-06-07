@@ -5,6 +5,8 @@ module CiscoSpark
     include Model
     resource 'messages'
 
+    DownloadNotAllowed = Class.new(ArgumentError)
+
     attributes(
       id: DataCaster::String,
       person_id: DataCaster::String,
@@ -32,6 +34,8 @@ module CiscoSpark
 
       response = Api.new.get(files.first.split('/')[-2..-1].join('/'))
       response.header['content-disposition'][/filename="(.+)"/]
+
+      raise DownloadNotAllowed if response.is_a? Net::HTTPUnavailableForLegalReasons
 
       {
         data: "data:application/octet-stream;base64,#{Base64.encode64(response.body)}",
